@@ -5,6 +5,7 @@ import copy
 import os
 from human_detectors import Human_Detectors
 from tracker import Tracker
+from people_in_box import People_In_Box
 
 
 def main():
@@ -21,11 +22,6 @@ def main():
                     (127, 0, 255), (127, 0, 127)]
 
     rootdir = "./sequence/"
-
-    # initialize the HOG descriptor/person detector
-    hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
     # # loop over the image paths
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
@@ -46,6 +42,21 @@ def main():
                 tracker.Update(centers)
                 count = len(tracker.tracks)
 
+                # Start Task 2
+                # Establishing coordinates and dimension of box
+                x_coord = 300
+                y_coord = 100
+                width = 200
+                height = 200
+
+                # Declaring Constructor for the People in Box Tracker
+                people_inside = People_In_Box(
+                    frame, centers, x_coord, y_coord, width, height)
+
+                # Return the count of the people inside the drawn box
+                peopleInBox, frame = people_inside.count_people()
+                # End Task 2
+
                 # drawing tracks with different colors
                 for i in range(len(tracker.tracks)):
                     if (len(tracker.tracks[i].trace) > 1):
@@ -62,8 +73,10 @@ def main():
                 # Show the tracked video frame
                 cv2.putText(frame, 'people detected: ' + str(count), (10, 450),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+                cv2.putText(frame, 'people in box: ' + str(peopleInBox), (10, 500),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
                 cv2.imshow('Tracking', frame)
-                print("total number people in the frame: ", count)
+                # print("total number people in the frame: ", count)
 
             key = cv2.waitKey(50) & 0xff
             # Escape key to exit
