@@ -51,11 +51,20 @@ def main():
 
                 # Declaring Constructor for the People in Box Tracker
                 people_inside = People_In_Box(
-                    frame, centers, x_coord, y_coord, width, height)
+                    frame, centers)
 
                 # Return the count of the people inside the drawn box
-                peopleInBox, frame = people_inside.count_people()
+                peopleInBox = people_inside.count_people(
+                    x_coord, y_coord, x_coord + width, y_coord + height)
+
+                # draw a rectangle
+                cv2.rectangle(
+                    frame, (x_coord, y_coord), (x_coord + width, y_coord + height), (255, 0, 0), 2)
                 # End Task 2
+
+                # Start Task 3 - Fix the function in people_in_box.py
+                peopleInGroup, peopleAlone, frame = people_inside.count_people_in_group(
+                    75)
 
                 # drawing tracks with different colors
                 for i in range(len(tracker.tracks)):
@@ -71,11 +80,21 @@ def main():
                                      track_colors[clr], 2)
 
                 # Show the tracked video frame
-                cv2.putText(frame, 'people detected: ' + str(count), (10, 450),
+                cv2.putText(frame, 'people detected: ' + str(count), (10, 400),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
-                cv2.putText(frame, 'people in box: ' + str(peopleInBox), (10, 500),
+                cv2.putText(frame, 'people in box: ' + str(peopleInBox), (10, 450),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+                cv2.putText(frame, 'people in groups: ' + str(peopleInGroup), (10, 500),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+                cv2.putText(frame, 'people alone: ' + str(peopleAlone), (10, 550),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
                 cv2.imshow('Tracking', frame)
+
+                """
+                For everyone running it, press "Spacebar" to go to the next frame
+                """
+                cv2.waitKey(
+                    0)  # Comment out if you want to run like a video instead of frame by frame
                 # print("total number people in the frame: ", count)
 
             key = cv2.waitKey(50) & 0xff
