@@ -1,57 +1,117 @@
-import cv2
+from collections import OrderedDict
+import numpy as np
 
 
-class People_In_Box(object):
+class PeopleInBox(object):
+
     # Class to detect people in a box
-    def __init__(self, frame, centers):
-        self.people_in_box = 0
+    def __init__(self, frame, centers, rects):
+        # self.people_in_box = 0
         self.frame = frame
         self.centers = centers
+        self.rects = rects
 
     # Function to count the people in the box
-    def count_people(self, x1, y1, x2, y2):
+    def count_people_in_box(self, x1, y1, x2, y2):
         people_in_box = 0
+        # pts = []
+        pid = 0
+        pids = []
 
         # Extracting the coordinates from the centroids
         for x, y in self.centers:
-            cX = x[0]
-            cY = y[0]
+            cX = x
+            cY = y
+
             # Increasing count of people inside the box
             if cX > x1 and cX < x2 and cY > y1 and cY < y2:
                 people_in_box += 1
+                # pts.append([cX, cY])
+                pids.append(pid)
 
-        # Returning the count
-        return people_in_box
+            pid += 1
 
-    # Function to count the people in the box
-    def count_people_in_group(self, threshold):
+        # Returning the count, centroid index and centroid coordinates
+        return people_in_box, pids
+
+    # Function to merge group with common pids
+    def merge(self, lists, results=None):
+
+        if results is None:
+            results = []
+
+        if not lists:
+            return results
+
+        first = lists[0]
+        merged = []
+        output = []
+
+        for li in lists[1:]:
+            for i in first:
+                if i in li:
+                    merged = merged + li
+                    break
+            else:
+                output.append(li)
+
+        merged = merged + first
+        results.append(list(set(merged)))
+
+        return self.merge(output, results)
+
+    # Function to detect group in the frame
+    def detect_group(self, threshold):
         """
-        Function for Task 3 to fix
+        detect groups of people based on the centroid distance threshold
+        output: groups of indices of centers
         """
-        # Establish box with threshold to include other nearby people
-        people_in_group = 0
-        people_alone = 0
+        groups = []
+        # gid = 0
+        # pid = 0
 
         # Extracting the coordinates from the centroids
         for x, y in self.centers:
-            x1 = x[0] - threshold
-            y1 = y[0] - threshold
-            x2 = x[0] + threshold
-            y2 = y[0] + threshold
+            x1 = x - threshold
+            y1 = y - threshold
+            x2 = x + threshold
+            y2 = y + threshold
 
-            # Calculating people in group within threshold
-            people_in_group = self.count_people(x1, y1, x2, y2)
-            # Differentiating single pedestrian from groups of people
-            if people_in_group == 1:
-                people_in_group = 0
-                people_alone += 1
-            # Draws the box if a group (more than 1 people) is detected
-            elif people_in_group > 1:
-                # Attempt to keep count value consistent throught but unsure if it is working
-                people_in_group = self.count_people(x1, y1, x2, y2)
-                # draw a rectangle
-                cv2.rectangle(
-                    self.frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            # Extracting group information
+            count, pid_in_group = self.count_people_in_box(x1, y1, x2, y2)
+            if pid_in_group not in groups:
+                # print(pid_in_group)
+                groups.append(pid_in_group)
 
-        # Returning the count of people witin a group as well as the frame with the drawn box
-        return people_in_group, people_alone, self.frame
+        # Returning groups of indices of centers
+        return self.merge(groups)
+
+    # Function to count the people in group and construct group bounding box
+    def count_people_in_group(self, groups):
+
+        people_in_group = 0
+        people_alone = 0
+        group_boxs = []
+        margin = 5
+
+        if len(groups) > 0:
+
+            for cluster in groups:
+
+                # Calculate bounding box coordinates of groups in the frame
+                if len(cluster) > 1:
+                    people_in_group += len(cluster)
+                    boxs = [self.rects[i] for i in cluster]
+                    boxs = np.stack(boxs, axis=1)
+
+                    x1 = max(min(boxs[1])-margin, 1)
+                    y1 = max(min(boxs[0])-margin, 1)
+                    x2 = min(max(boxs[3])+margin, self.frame.shape[1] - 1)
+                    y2 = min(max(boxs[2])+margin, self.frame.shape[0] - 1)
+
+                    group_boxs.append([x1, y1, x2, y2])
+
+                else:
+                    people_alone += 1
+
+        return people_in_group, people_alone, group_boxs
