@@ -1,4 +1,5 @@
 # Pedestrian Detection Application
+
 •	Developed a Computer Vision Python solution to detect and track multiple pedestrians individually and in groups through multiple iterative photo frames  
 
 •	Extracted the features of the pedestrians using Faster Region-Convolutional Neural Network Deep Learning Algorithms (R-CNN) using TensorFlow
@@ -6,6 +7,8 @@
 •	Used a Centroid based algorithm to find the centre points of the pedestrians in order to keep track and ID the pedestrian in real-time
 
 ## Running the operation
+
+Only works up to Python 3.6 due to TensorFlow usage compatability
 
 **Activate the virtual environment**
 
