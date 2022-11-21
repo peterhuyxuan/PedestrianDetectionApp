@@ -3,5 +3,5 @@ numpy==1.18.3
 opencv-python==4.2.0.34
 scipy==1.4.1 
 tensorboard==2.1.1
-tensorflow==2.1.0
+tensorflow==2.9.3
 tensorflow-estimator==2.1.0
